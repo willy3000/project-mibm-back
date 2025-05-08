@@ -16,7 +16,11 @@ var cors = require("cors");
 const corsOptions = {
   // origin: "http://localhost:3000", // Replace with your frontend domain
   // origin: "http://192.168.100.6:3000", // Replace with your frontend domain,
-  origin: ['http://localhost:3000', '"http://192.168.100.6:3000"'],
+  origin: [
+    "http://localhost:3000",
+    "http://192.168.100.6:3000",
+    "https://inventory-project-mibm.netlify.app/authentication#",
+  ],
   // origin: "*", // Replace with your frontend domain
   methods: ["GET", "POST", "PUT", "DELETE"], // Specify allowed HTTP methods
   credentials: true, // If you need to send cookies or HTTP authentication
