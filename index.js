@@ -19,7 +19,7 @@ const corsOptions = {
   origin: [
     "http://localhost:3000",
     "http://192.168.100.6:3000",
-    "https://inventory-project-mibm.netlify.app/authentication#",
+    "https://inventory-project-mibm.netlify.app",
   ],
   // origin: "*", // Replace with your frontend domain
   methods: ["GET", "POST", "PUT", "DELETE"], // Specify allowed HTTP methods
