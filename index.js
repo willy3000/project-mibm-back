@@ -51,6 +51,9 @@ app.use("/api/logs", require("./routes/api/logs"));
 //plans Api
 app.use("/api/plans", require("./routes/api/plans"));
 
+//payment Api
+app.use("/api/payment", require("./routes/api/payment"));
+
 // //products Api
 // app.use('/api/products', require('./routes/api/products'))
 
