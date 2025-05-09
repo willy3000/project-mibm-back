@@ -30,6 +30,7 @@ const allowedOrigins = [
   "http://localhost:3000",
   "http://192.168.100.6:3000",
   "https://inventory-project-mibm.netlify.app",
+  "https://www.inventory-project-mibm.netlify.app",
 ];
 
 const corsOptions = {
