@@ -12,7 +12,7 @@ async function sendTestEmail(email, businessName) {
   });
 
   // Define the HTML content for the welcome email
-  const htmlContent = `
+  const htmlContent1 = `
       <!DOCTYPE html>
       <html>
       <head>
@@ -81,6 +81,95 @@ async function sendTestEmail(email, businessName) {
           </div>
       </body>
       </html>
+  `;
+  // Alternative HTML content for the welcome email
+  const htmlContent = `
+      <!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Welcome to ${businessName} Inventory</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f2f4f6;
+      margin: 0;
+      padding: 0;
+    }
+
+    .container {
+      background-color: #ffffff;
+      margin: 40px auto;
+      padding: 30px;
+      border-radius: 10px;
+      max-width: 600px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+
+    .header {
+      text-align: center;
+      border-bottom: 1px solid #e5e5e5;
+      padding-bottom: 15px;
+    }
+
+    .header h1 {
+      margin: 0;
+      font-size: 22px;
+      color: #2c3e50;
+    }
+
+    .content {
+      font-size: 15px;
+      color: #555555;
+      line-height: 1.7;
+      margin-top: 20px;
+    }
+
+    .footer {
+      text-align: center;
+      font-size: 12px;
+      color: #aaaaaa;
+      margin-top: 30px;
+    }
+
+    .button {
+      display: inline-block;
+      margin-top: 25px;
+      padding: 12px 25px;
+      background-color: #28a745;
+      color: #ffffff !important;
+      text-decoration: none;
+      border-radius: 5px;
+      font-weight: bold;
+    }
+
+    .button:hover {
+      background-color: #218838;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h1>Welcome to ${businessName} Inventory</h1>
+    </div>
+    <div class="content">
+      <p>Hi there,</p>
+      <p>Thank you for joining our community! We’re thrilled to have you on board.</p>
+      <p>Get started by exploring your dashboard and making the most out of our inventory system.</p>
+      <p>If you haven’t received your login credentials yet, please check your inbox or spam folder — they should be on their way!</p>
+
+      <!-- Optional Call-to-Action button -->
+      <a href="#" class="button">Go to Dashboard</a>
+    </div>
+    <div class="footer">
+      <p>&copy; ${new Date().getFullYear()} ${businessName}. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>
+
   `;
 
   // Define email options
@@ -344,4 +433,112 @@ const sendPermissionsEmail = (email, permissions) => {
   } catch (err) {}
 };
 
-module.exports = { sendEmail, sendPermissionsEmail, sendTestEmail };
+const sendTransactionReceipt = (
+  businessName,
+  receiptNumber,
+  amount,
+  transactionDate
+) => {
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: "willywario0@gmail.com",
+      pass: "qjqd szgi irbe rxzv",
+    },
+  });
+
+  const mailOptions = {
+    from: "willywario0@gmail.com",
+    to: email,
+    subject: "Permissions Update",
+    html: `<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Payment Receipt - ${businessName}</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: #f4f6f8;
+      margin: 0;
+      padding: 0;
+    }
+    .container {
+      max-width: 600px;
+      margin: 40px auto;
+      background-color: #ffffff;
+      border-radius: 8px;
+      padding: 30px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    }
+    .header {
+      text-align: center;
+      padding-bottom: 20px;
+      border-bottom: 1px solid #eaeaea;
+    }
+    .header h2 {
+      margin: 0;
+      color: #2c3e50;
+    }
+    .content {
+      margin-top: 20px;
+      font-size: 15px;
+      color: #333333;
+    }
+    .receipt-details {
+      margin: 20px 0;
+      background-color: #f8f9fa;
+      border: 1px solid #dee2e6;
+      border-radius: 5px;
+      padding: 15px;
+    }
+    .receipt-details p {
+      margin: 8px 0;
+    }
+    .footer {
+      text-align: center;
+      margin-top: 30px;
+      font-size: 12px;
+      color: #888888;
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="header">
+      <h2>Payment Receipt</h2>
+      <p>Thank you for your payment!</p>
+    </div>
+    <div class="content">
+      <p>Hello,</p>
+      <p>This is a confirmation that we’ve received your payment via M-PESA. Below are the transaction details:</p>
+
+      <div class="receipt-details">
+        <p><strong>Receipt Number:</strong> ${receiptNumber}</p>
+        <p><strong>Amount Paid:</strong> KES ${amount}</p>
+        <p><strong>Transaction Date:</strong> ${transactionDate}</p>
+        <p><strong>Business Name:</strong> ${businessName}</p>
+      </div>
+
+      <p>If you have any questions or did not authorize this payment, please contact us immediately.</p>
+    </div>
+    <div class="footer">
+      <p>&copy; ${new Date().getFullYear()} ${businessName}. All rights reserved.</p>
+    </div>
+  </div>
+</body>
+</html>
+`,
+  };
+
+  try {
+    transporter.sendMail(mailOptions, (error, info) => {
+      if (error) {
+        return console.log(error);
+      }
+      console.log("Email sent: " + info.response);
+    });
+  } catch (err) {}
+};
+
+module.exports = { sendEmail, sendPermissionsEmail, sendTestEmail, sendTransactionReceipt };

@@ -12,6 +12,7 @@ const db = require("monk")(process.env.MONGODB_URL);
 const CurrencyConverter = require("currency-converter-lt");
 
 const cheerio = require("cheerio");
+const { sendTransactionReceipt } = require("../../utils/constants");
 
 // Function to scrape exchange rate
 async function getUsdToKesRate() {
@@ -56,7 +57,7 @@ router.post("/initializeMpesaStkPush", async (req, res) => {
       {
         email,
         // amount: convertedAmount * 100,
-        amount: 1 * 100,
+        amount: Math.ceil(amount) * 100,
         currency: "KES",
         mobile_money: {
           phone,
@@ -77,6 +78,35 @@ router.post("/initializeMpesaStkPush", async (req, res) => {
   } catch (error) {
     const errRes = error.response?.data || { error: "Something went wrong" };
     return res.status(500).json(errRes);
+  }
+});
+
+// Validate M-Pesa Payment via Paystack
+router.get("/validateMpesaPayment/:reference", async (req, res) => {
+  const { reference } = req.params;
+
+  try {
+    const response = await axios.get(
+      `https://api.paystack.co/transaction/verify/${reference}`,
+      {
+        headers: {
+          Authorization: `Bearer ${process.env.PAYSTACK_SECRET_KEY}`,
+          "Content-Type": "application/json",
+        },
+      }
+    );
+    console.log(response);
+    // sendTransactionReceipt()
+    return res.status(200).json({
+      success: response.data.status,
+      message: response.data.message,
+    });
+  } catch (error) {
+    const errRes = error.response?.data || { error: "Something went wrong" };
+    return res.json({
+      success: false,
+      message: "Something went wrong",
+    });
   }
 });
 
