@@ -48,21 +48,24 @@ const roundUpAmount = (amount) => {
 router.post("/initializeMpesaStkPush", async (req, res) => {
   const { email = "live@gmail.com", amount, phone } = req.body;
   const convertedAmount = roundUpAmount(amount);
+  const transactionDetails = {
+    email,
+    // amount: convertedAmount * 100,
+    amount: Number(Math.ceil(amount)) * 100,
+    currency: "KES",
+    mobile_money: {
+      phone,
+      provider: "mpesa",
+    },
+  };
 
-  console.log("final amount", convertedAmount);
+//   console.log("transaction details", transactionDetails);
 
   try {
     const response = await axios.post(
       "https://api.paystack.co/charge",
       {
-        email,
-        // amount: convertedAmount * 100,
-        amount: Math.ceil(amount) * 100,
-        currency: "KES",
-        mobile_money: {
-          phone,
-          provider: "mpesa",
-        },
+        ...transactionDetails,
       },
       {
         headers: {
@@ -72,10 +75,11 @@ router.post("/initializeMpesaStkPush", async (req, res) => {
       }
     );
 
-    console.log("data", response.data);
-
+    // console.log("data", response.data.data);
     return res.status(200).json(response.data);
   } catch (error) {
+    console.log("error occured");
+    console.log(error);
     const errRes = error.response?.data || { error: "Something went wrong" };
     return res.status(500).json(errRes);
   }
@@ -95,11 +99,13 @@ router.get("/validateMpesaPayment/:reference", async (req, res) => {
         },
       }
     );
-    console.log(response);
+    // console.log(response.data);
     // sendTransactionReceipt()
+    console.log(response.data.data)
     return res.status(200).json({
-      success: response.data.status,
-      message: response.data.message,
+      success: response.data.data.status === "success" ? true : false,
+      status: response.data.data.status,
+      message: response.data.data.message,
     });
   } catch (error) {
     const errRes = error.response?.data || { error: "Something went wrong" };

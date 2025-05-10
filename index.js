@@ -17,6 +17,8 @@ const corsOptions = {
   // origin: "http://localhost:3000", // Replace with your frontend domain
   // origin: "http://192.168.100.6:3000", // Replace with your frontend domain,
   origin: [
+    "http://localhost:3000",
+    "http://192.168.100.6:3000",
     "https://inventory-project-mibm.netlify.app",
   ],
   // origin: "*", // Replace with your frontend domain
