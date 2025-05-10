@@ -24,7 +24,7 @@ const corsOptions = {
   // origin: "*", // Replace with your frontend domain
   origin: "https://inventory-project-mibm.netlify.app", // Replace with your frontend domain
   methods: ["GET", "POST", "PUT", "DELETE"], // Specify allowed HTTP methods
-  credentials: true, // If you need to send cookies or HTTP authentication
+  // credentials: true, // If you need to send cookies or HTTP authentication
 };
 
 // const allowedOrigins = [
