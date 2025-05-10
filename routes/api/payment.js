@@ -108,10 +108,10 @@ router.get("/validateMpesaPayment/:reference", async (req, res) => {
       message: response.data.data.message,
     });
   } catch (error) {
-    const errRes = error.response?.data || { error: "Something went wrong" };
+    const errRes = error.message || { error: "Something went wrong" };
     return res.json({
       success: false,
-      message: "Something went wrong",
+      message: errRes,
     });
   }
 });
