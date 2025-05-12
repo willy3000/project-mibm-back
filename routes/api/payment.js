@@ -98,8 +98,6 @@ router.post("/validateMpesaPayment/:reference", async (req, res) => {
   const businessName = req.body.businessName;
   const email = req.body.email;
 
-  console.log("user is, ", businessName, email);
-  console.log("type is, ", typeof businessName, typeof email);
 
   try {
     const response = await axios.get(
