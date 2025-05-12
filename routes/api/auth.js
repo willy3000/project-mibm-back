@@ -68,6 +68,7 @@ router.post("/signUp", async (req, res) => {
           username: userDetails.username,
           logo: userDetails.logo,
           businessName: userDetails.businessName,
+          email: userDetails.email,
         },
       });
       res.send();
@@ -115,6 +116,7 @@ router.post("/logIn", logOperation, (req, res) => {
               username: account.username,
               logo: account.logo,
               businessName: account.businessName,
+              email: account.email,
             },
           });
         } else {

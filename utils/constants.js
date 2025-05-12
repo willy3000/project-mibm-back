@@ -1,6 +1,20 @@
 const BASE_URL = "http://192.168.3.243:3000";
 const nodemailer = require("nodemailer");
 
+
+
+  //format date function
+  const formatDate = (date) => {
+    return new Date(date).toLocaleDateString("en-US", {
+      weekday: "long", // 'short', 'narrow' for shorter names
+      year: "numeric",
+      month: "long", // 'short' for abbreviated month names
+      day: "numeric",
+    });
+  };
+
+
+
 async function sendTestEmail(email, businessName) {
   // Create a transporter with your email provider's SMTP details
   const transporter = nodemailer.createTransport({
@@ -10,6 +24,8 @@ async function sendTestEmail(email, businessName) {
       pass: "qjqd szgi irbe rxzv",
     },
   });
+
+
 
   // Define the HTML content for the welcome email
   const htmlContent1 = `
@@ -435,6 +451,7 @@ const sendPermissionsEmail = (email, permissions) => {
 
 const sendTransactionReceipt = (
   businessName,
+  email,
   receiptNumber,
   amount,
   transactionDate
@@ -450,7 +467,7 @@ const sendTransactionReceipt = (
   const mailOptions = {
     from: "willywario0@gmail.com",
     to: email,
-    subject: "Permissions Update",
+    subject: "Transaction Receipt",
     html: `<!DOCTYPE html>
 <html>
 <head>
@@ -459,7 +476,7 @@ const sendTransactionReceipt = (
   <style>
     body {
       font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-      background-color: #f4f6f8;
+      background-color: #eef6f1;
       margin: 0;
       padding: 0;
     }
@@ -467,63 +484,99 @@ const sendTransactionReceipt = (
       max-width: 600px;
       margin: 40px auto;
       background-color: #ffffff;
-      border-radius: 8px;
+      border-radius: 10px;
       padding: 30px;
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+      box-shadow: 0 6px 20px rgba(0, 128, 0, 0.1);
+      border-top: 6px solid #34b233;
     }
     .header {
       text-align: center;
       padding-bottom: 20px;
-      border-bottom: 1px solid #eaeaea;
+      border-bottom: 1px solid #d9f1df;
     }
     .header h2 {
-      margin: 0;
-      color: #2c3e50;
+      margin: 10px 0;
+      color: #34b233;
+      font-size: 26px;
+    }
+    .header p {
+      color: #555;
+      font-size: 14px;
     }
     .content {
       margin-top: 20px;
       font-size: 15px;
-      color: #333333;
+      color: #333;
+    }
+    .content p {
+      margin: 10px 0;
     }
     .receipt-details {
       margin: 20px 0;
-      background-color: #f8f9fa;
-      border: 1px solid #dee2e6;
-      border-radius: 5px;
-      padding: 15px;
+      background-color: #f0f9f4;
+      border-left: 4px solid #34b233;
+      padding: 20px;
+      border-radius: 6px;
     }
     .receipt-details p {
       margin: 8px 0;
+      line-height: 1.6;
+    }
+    .receipt-details strong {
+      color: #2d4734;
     }
     .footer {
       text-align: center;
       margin-top: 30px;
       font-size: 12px;
-      color: #888888;
+      color: #999;
+    }
+    .icon {
+      width: 40px;
+      height: 40px;
+      margin: 0 auto 10px;
+    }
+    .icon img {
+      max-width: 100%;
+    }
+    .button {
+      display: inline-block;
+      background-color: #34b233;
+      color: #fff;
+      text-decoration: none;
+      padding: 10px 20px;
+      border-radius: 5px;
+      margin-top: 20px;
+      font-weight: bold;
+    }
+    @media (max-width: 600px) {
+      .container {
+        padding: 20px;
+      }
     }
   </style>
 </head>
 <body>
   <div class="container">
     <div class="header">
-      <h2>Payment Receipt</h2>
-      <p>Thank you for your payment!</p>
+      <h2>Payment Received</h2>
+      <p>We value working with you!</p>
     </div>
     <div class="content">
       <p>Hello,</p>
-      <p>This is a confirmation that we’ve received your payment via M-PESA. Below are the transaction details:</p>
+      <p>We have successfully received your payment via M-PESA. Below are the transaction details:</p>
 
       <div class="receipt-details">
         <p><strong>Receipt Number:</strong> ${receiptNumber}</p>
-        <p><strong>Amount Paid:</strong> KES ${amount}</p>
+        <p><strong>Amount Paid:</strong> <span style="color: #34b233;">KES ${amount}</span></p>
         <p><strong>Transaction Date:</strong> ${transactionDate}</p>
         <p><strong>Business Name:</strong> ${businessName}</p>
       </div>
 
-      <p>If you have any questions or did not authorize this payment, please contact us immediately.</p>
+      <p>If you did not authorize this transaction or have any questions, please contact our support team immediately.</p>
     </div>
     <div class="footer">
-      <p>&copy; ${new Date().getFullYear()} ${businessName}. All rights reserved.</p>
+      <p>&copy; ${new Date().getFullYear()} ${businessName}. Powered by M-PESA.</p>
     </div>
   </div>
 </body>
@@ -541,4 +594,10 @@ const sendTransactionReceipt = (
   } catch (err) {}
 };
 
-module.exports = { sendEmail, sendPermissionsEmail, sendTestEmail, sendTransactionReceipt };
+module.exports = {
+  sendEmail,
+  sendPermissionsEmail,
+  sendTestEmail,
+  sendTransactionReceipt,
+  formatDate,
+};
