@@ -115,12 +115,15 @@ router.post("/validateMpesaPayment/:reference", async (req, res) => {
     // sendTransactionReceipt()
     console.log(response.data.data);
     if (response.data.data.status === "success") {
+      const transactionDate = formatDate(response.data.data.paid_at);
+      const receiptNumber = response.data.data.receipt_number;
+      const amount = response.data.data.amount;
       sendTransactionReceipt(
-        businessName = businessName,
-        email = email,
-        (transactionDate = formatDate(response.data.data.paid_at)),
-        (receiptNumber = response.data.data.receipt_number),
-        (amount = response.data.data.amount)
+        businessName,
+        email,
+        transactionDate,
+        receiptNumber,
+        amount
       );
     }
     return res.status(200).json({
