@@ -15,8 +15,10 @@ const items = db.get("items");
 const assignments = db.get("assignments");
 const authenticateJWT = require("../../middleware/authenticate-jwt");
 const logOperation = require("../../middleware/log-entry");
+const { uploadImage } = require("../../utils/constants");
 
 const nullValues = [null, "null", "undefined", undefined, ""];
+
 
 //reusable
 router.get("/getItemQuantities/:userId", authenticateJWT, async (req, res) => {
@@ -46,13 +48,14 @@ router.post(
   upload.single("image"),
   logOperation,
   async (req, res) => {
+
     const itemDetails = {
       id: uuidv4(),
       userId: req.params.userId,
       name: req.body.itemName,
       type: req.body.itemType,
       quantity: 0,
-      image: req.file,
+      image: await uploadImage(req.file),
       deleted: false,
     };
 
@@ -61,8 +64,12 @@ router.post(
         .insert({
           ...itemDetails,
         })
-        .then(() => {
-          res.json({ success: true, message: "Item Added" });
+        .then((doc) => {
+          console.log(doc);
+          res.json({
+            success: true,
+            message: "item group created",
+          });
         });
     } catch (err) {
       res.json({ success: false, message: err });

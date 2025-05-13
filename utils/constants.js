@@ -1,19 +1,39 @@
 const BASE_URL = "http://192.168.3.243:3000";
 const nodemailer = require("nodemailer");
+const cloudinary = require("cloudinary").v2;
 
+// Cloudinary Image Bucket Config
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+});
 
+//format date function
+const formatDate = (date) => {
+  return new Date(date).toLocaleDateString("en-US", {
+    weekday: "long", // 'short', 'narrow' for shorter names
+    year: "numeric",
+    month: "long", // 'short' for abbreviated month names
+    day: "numeric",
+  });
+};
 
-  //format date function
-  const formatDate = (date) => {
-    return new Date(date).toLocaleDateString("en-US", {
-      weekday: "long", // 'short', 'narrow' for shorter names
-      year: "numeric",
-      month: "long", // 'short' for abbreviated month names
-      day: "numeric",
+//upload image to cloudinary bucket
+const uploadImage = async (image) => {
+  const base64String = `data:${image.mimetype};base64,${image.buffer.toString(
+    "base64"
+  )}`;
+
+  try {
+    const result = await cloudinary.uploader.upload(base64String, {
+      folder: "inventory_images",
     });
-  };
-
-
+    return result.url;
+  } catch (err) {
+    return null;
+  }
+};
 
 async function sendTestEmail(email, businessName) {
   // Create a transporter with your email provider's SMTP details
@@ -24,8 +44,6 @@ async function sendTestEmail(email, businessName) {
       pass: "qjqd szgi irbe rxzv",
     },
   });
-
-
 
   // Define the HTML content for the welcome email
   const htmlContent1 = `
@@ -600,4 +618,5 @@ module.exports = {
   sendTestEmail,
   sendTransactionReceipt,
   formatDate,
+  uploadImage
 };

@@ -18,6 +18,7 @@ const inventory = db.get("inventory");
 const items = db.get("items");
 const assignments = db.get("assignments");
 const authenticateJWT = require("../../middleware/authenticate-jwt");
+const { uploadImage } = require("../../utils/constants");
 
 //Add Item to inventory #mongodb
 router.post(
@@ -31,7 +32,7 @@ router.post(
       employeeName: req.body.employeeName,
       gender: req.body.gender,
       department: req.body.department,
-      image: req.file,
+      image: await uploadImage(req.file),
       deleted: false,
     };
 

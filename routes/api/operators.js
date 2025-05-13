@@ -17,6 +17,7 @@ const {
   sendEmail,
   sendPermissionsEmail,
   sendTestEmail,
+  uploadImage,
 } = require("../../utils/constants");
 const { validateAddUsers } = require("../../middleware/validate-subscription");
 
@@ -56,7 +57,7 @@ router.post(
       username: details.username,
       businessName: details.businessName,
       logo: null,
-      image: req.file,
+      image: await uploadImage(req.file),
       email: details.email,
       userCode: generateUserCode(details.username),
       password: generatePassword(),
