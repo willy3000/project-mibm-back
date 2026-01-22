@@ -3,6 +3,8 @@ const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const dotenv = require("dotenv");
 const cookieParser = require("cookie-parser");
+const http = require("http");
+const { Server } = require("socket.io");
 
 const app = express();
 
@@ -16,16 +18,54 @@ var cors = require("cors");
 const corsOptions = {
   // origin: "http://localhost:3000", // Replace with your frontend domain
   // origin: "http://192.168.100.6:3000", // Replace with your frontend domain,
-  // origin: [
-  //   "http://localhost:3000",
-  //   "http://192.168.100.6:3000",
-  //   "https://inventory-project-mibm.netlify.app",
-  // ],
+  origin: [
+    "http://localhost:3000",
+    "http://192.168.100.6:3000",
+    "https://inventory-project-mibm.netlify.app",
+  ],
   // origin: "*", // Replace with your frontend domain
-  origin: "https://inventory-project-mibm.netlify.app", // Replace with your frontend domain
+  // origin: "https://inventory-project-mibm.netlify.app", // Replace with your frontend domain
   methods: ["GET", "POST", "PUT", "DELETE"], // Specify allowed HTTP methods
   credentials: true, // If you need to send cookies or HTTP authentication
 };
+
+const server = http.createServer(app);
+const io = new Server(server, {
+  cors: {
+    // origin: "*", // Your Next.js app
+    origin: [
+      "http://localhost:3000",
+      "http://192.168.100.6:3000",
+      "https://inventory-project-mibm.netlify.app",
+    ],
+    methods: ["GET", "POST"],
+    credentials: true,
+  },
+});
+
+// Store socket connections with userId (assumes user auth)
+
+app.set("io", io); // So we can access it in route files
+const connectedUsers = new Map();
+app.set("connectedUsers", connectedUsers);
+
+io.on("connection", (socket) => {
+  console.log("User connected", socket.id);
+
+  // Expect frontend to emit a `register` event with userId
+  socket.on("register", (userId) => {
+    connectedUsers.set(userId, socket.id);
+  });
+
+  socket.on("disconnect", () => {
+    for (const [userId, socketId] of connectedUsers.entries()) {
+      if (socketId === socket.id) {
+        connectedUsers.delete(userId);
+        break;
+      }
+    }
+  });
+});
 
 // const allowedOrigins = [
 //   "http://localhost:3000",
@@ -71,6 +111,9 @@ app.use("/api/logs", require("./routes/api/logs"));
 //plans Api
 app.use("/api/plans", require("./routes/api/plans"));
 
+//notifications Api
+app.use("/api/notifications", require("./routes/api/notifications"));
+
 //payment Api
 app.use("/api/payment", require("./routes/api/payment"));
 
@@ -79,4 +122,4 @@ app.use("/api/payment", require("./routes/api/payment"));
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => console.log(`Server started  on port ${PORT}`));
+server.listen(PORT, () => console.log(`Server started  on port ${PORT}`));

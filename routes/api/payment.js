@@ -24,20 +24,20 @@ async function getUsdToKesRate() {
 
     // Extracting exchange rate from the page
     const rate = $("div[data-precision]").first().text();
-    console.log("rate", rate);
+    // console.log("rate", rate);
     if (rate) {
       return parseFloat(rate);
     } else {
       throw new Error("Unable to find exchange rate on the page");
     }
   } catch (error) {
-    console.error("Error fetching exchange rate:", error.message);
+    // console.error("Error fetching exchange rate:", error.message);
     throw error;
   }
 }
 
 const convertUsdToKes = async (usdAmount) => {
-  console.log(await getUsdToKesRate());
+  // console.log(await getUsdToKesRate());
 };
 
 const roundUpAmount = (amount) => {
@@ -60,7 +60,7 @@ router.post("/initializeMpesaStkPush", async (req, res) => {
     },
   };
 
-  console.log("transaction details", transactionDetails);
+  // console.log("transaction details", transactionDetails);
 
   try {
     const response = await axios.post(
@@ -111,7 +111,7 @@ router.post("/validateMpesaPayment/:reference", async (req, res) => {
     );
     // console.log(response.data);
     // sendTransactionReceipt()
-    console.log(response.data.data);
+    // console.log(response.data.data);
     if (response.data.data.status === "success") {
       const transactionDate = formatDate(response.data.data.paid_at);
       const receiptNumber = response.data.data.receipt_number;

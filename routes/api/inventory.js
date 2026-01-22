@@ -65,7 +65,7 @@ router.post(
           ...itemDetails,
         })
         .then((doc) => {
-          console.log(doc);
+          // console.log(doc);
           res.json({
             success: true,
             message: "item group created",
@@ -101,7 +101,7 @@ router.post(
     const existingSerial = await items.find({
       serialNumber: itemDetails.serialNumber,
     });
-    console.log(existingSerial);
+    // console.log(existingSerial);
 
     try {
       if (existingSerial.length === 0) {
@@ -137,7 +137,7 @@ router.get("/getInventoryItems/:userId", authenticateJWT, async (req, res) => {
   };
 
   if (!nullValues.includes(type)) {
-    console.log;
+    // console.log;
     query = { ...query, type: type };
   } else {
   }
@@ -145,10 +145,10 @@ router.get("/getInventoryItems/:userId", authenticateJWT, async (req, res) => {
     query = { ...query, name: { $regex: searchQuery, $options: "i" } };
   } else {
   }
-  console.log(query);
+  // console.log(query);
   const totalItems = await inventory.count({ ...query });
 
-  console.log(type, searchQuery);
+  // console.log(type, searchQuery);
 
   try {
     inventory.find(query, options).then((doc) => {

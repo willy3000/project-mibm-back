@@ -25,7 +25,7 @@ router.get("/exportLogs/:userId", authenticateJWT, async (req, res) => {
     "userId operatorId operation timestamp status responseStatus"
   );
 
-  console.log("jsonData", jsonData);
+  // console.log("jsonData", jsonData);
 
   // Create a new Excel workbook and worksheet
   const workbook = new ExcelJS.Workbook();

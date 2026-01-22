@@ -10,11 +10,13 @@ const db = require("monk")(process.env.MONGODB_URL);
 // const db = require("monk")("mongodb://localhost:27017/inventory-management");
 const users = db.get("users");
 const operators = db.get("operators");
+const notifications = db.get("notifications");
 const jwt = require("jsonwebtoken");
 const bcrypt = require("bcryptjs");
 const JWT_SECRET = process.env.JWT_SECRET;
 const authenticateJWT = require("../../middleware/authenticate-jwt");
 const logOperation = require("../../middleware/log-entry");
+const { sendNotification } = require("../../utils/constants");
 
 //Sign Up #mongodb
 router.post("/signUp", async (req, res) => {
@@ -45,8 +47,7 @@ router.post("/signUp", async (req, res) => {
         user: null,
       });
     } else {
-      users.insert({ ...userDetails, adminId: userDetails.id }).then(() => {
-      });
+      users.insert({ ...userDetails, adminId: userDetails.id }).then(() => {});
       const token = jwt.sign({ username: userDetails.username }, JWT_SECRET, {
         // expiresIn: "1h",
       });
@@ -58,6 +59,18 @@ router.post("/signUp", async (req, res) => {
         maxAge: 3600000, // 1 hour expiration
         path: "/",
       });
+      const notificationsDetails = {
+        title: `Hi, ${userDetails.username}. Welcome to your dashboard`,
+        message:
+          "We are thrilled to have you join us. Now you can explore all the cool features on your dashboard",
+        type: "system", //["info", "warning", "system"]
+        to: userDetails?.id,
+        from: "system",
+        createdAt: new Date(),
+        seenAt: null,
+        priority: "Low", //["low", "Medium", "High"]
+      };
+      sendNotification(notificationsDetails, req);
       res.json({
         success: true,
         message: "Sign Up Successful",

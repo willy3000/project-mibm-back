@@ -1,6 +1,9 @@
 const BASE_URL = "http://192.168.3.243:3000";
 const nodemailer = require("nodemailer");
+const { v4 } = require("uuid");
 const cloudinary = require("cloudinary").v2;
+const db = require("monk")(process.env.MONGODB_URL);
+const notifications = db.get("notifications");
 
 // Cloudinary Image Bucket Config
 cloudinary.config({
@@ -22,7 +25,7 @@ const formatDate = (date) => {
 //upload image to cloudinary bucket
 const uploadImage = async (image) => {
   const base64String = `data:${image.mimetype};base64,${image.buffer.toString(
-    "base64"
+    "base64",
   )}`;
 
   try {
@@ -32,6 +35,60 @@ const uploadImage = async (image) => {
     return result.url;
   } catch (err) {
     return null;
+  }
+};
+
+//get plan name using Id
+const getPlanName = (planId) => {
+  const plans = {
+    pl_001: "Basic",
+    pl_000: "Free",
+    pl_002: "Pro",
+    pl_003: "Enterprise",
+  };
+
+  return plans[planId] || "Unknown Plan";
+};
+
+//websocket emit notification
+const emitNotification = (newNotification, req, userId) => {
+  console.log("emmitted", userId);
+  const io = req.app.get("io");
+  const connectedUsers = req.app.get("connectedUsers");
+
+  const socketId = connectedUsers.get(userId);
+  console.log("socketId", socketId);
+  if (socketId) {
+    console.log("emitting to ", userId);
+    io.to(socketId).emit("new_notification", newNotification);
+  }
+};
+
+//send notification
+const sendNotification = (details, req) => {
+  const notificationDetails = {
+    id: v4(),
+    title: details?.title,
+    message: details?.message,
+    type: details?.type, //["info", "warning", "system"]
+    to: details?.to,
+    from: details?.from,
+    createdAt: new Date(),
+    seenAt: details?.seenAt,
+    priority: details?.priority,
+  };
+
+  try {
+    notifications
+      .insert({
+        ...notificationDetails,
+      })
+      .then((doc) => {
+        emitNotification(notificationDetails, req, notificationDetails?.to);
+        console.log(doc);
+      });
+  } catch (err) {
+    console.log(err.message);
   }
 };
 
@@ -332,7 +389,15 @@ const sendEmail = (username, email, userCode, password, businessName) => {
   } catch (err) {}
 };
 
-const sendPermissionsEmail = (email, permissions) => {
+const getPermissionsString = (key) => {
+  if (key === "canEditInventory") return "Manage Inventory";
+  if (key === "canEditEmployees") return "Manage Employees";
+  if (key === "canManageAssignItems") return "Manage Assignments";
+
+  return key;
+};
+
+const sendPermissionsEmail = (email, permissions, disabled) => {
   const transporter = nodemailer.createTransport({
     service: "gmail",
     auth: {
@@ -345,116 +410,95 @@ const sendPermissionsEmail = (email, permissions) => {
     from: "willywario0@gmail.com",
     to: email,
     subject: "Permissions Update",
-    html: `<!DOCTYPE html>
-<html lang="en">
+    html:`
+<!DOCTYPE html>
+<html>
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Permissions Updated</title>
-  <style>
-    body {
-      font-family: Arial, sans-serif;
-      color: #333333;
-      margin: 0;
-      padding: 0;
-      background-color: #f4f4f4;
-    }
-    .container {
-      max-width: 600px;
-      margin: auto;
-      padding: 20px;
-      border: 1px solid #eaeaea;
-      border-radius: 8px;
-      background-color: #ffffff;
-    }
-    .header {
-      text-align: center;
-      padding: 20px;
-      background-color: #4F46E5;
-      color: white;
-      border-radius: 8px 8px 0 0;
-    }
-    .content {
-      padding: 20px;
-    }
-    .permissions {
-      margin: 20px 0;
-    }
-    .permission-item {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      background-color: #f9f9f9;
-      padding: 15px;
-      margin-bottom: 10px;
-      border-radius: 8px;
-      box-shadow: 0 4px 8px rgba(0, 0, 0, 0.05);
-    }
-    .permission-item .name {
-      font-size: 16px;
-      font-weight: 500;
-    }
-    .permission-status {
-      display: flex;
-      align-items: center;
-      font-weight: bold;
-      padding: 5px 10px;
-      border-radius: 20px;
-      color: white;
-    }
-    .enabled {
-      background-color: #4CAF50; /* Green for enabled */
-    }
-    .disabled {
-      background-color: #FF6347; /* Orange-Red for disabled */
-    }
-    .permission-status svg {
-      margin-right: 8px;
-    }
-    .footer {
-      text-align: center;
-      font-size: 12px;
-      color: #888888;
-      padding: 20px;
-    }
-  </style>
 </head>
-<body>
-  <div class="container">
-    <div class="header">
-      <h2>Permissions Update</h2>
-    </div>
-    <div class="content">
-      <p>Hello,</p>
-      <p>We wanted to inform you that your permissions have recently been updated. Here is the list of your current permissions:</p>
+<body style="margin:0;padding:0;background-color:#f4f4f4;font-family:Arial,sans-serif;">
+  <table width="100%" cellpadding="0" cellspacing="0" style="padding:20px;">
+    <tr>
+      <td align="center">
+        <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:8px;overflow:hidden;">
+          
+          <!-- Header -->
+          <tr>
+            <td style="background:#4F46E5;padding:20px;text-align:center;color:#ffffff;">
+              <h2 style="margin:0;font-size:22px;">Permissions Update</h2>
+            </td>
+          </tr>
 
-      <div class="permissions">
+          <!-- Content -->
+          <tr>
+            <td style="padding:20px;color:#333333;">
+              <p style="margin-top:0;">Hello,</p>
+              <p>Your account permissions were recently updated. Below is your current access status:</p>
 
-      ${Object.entries(permissions).map(([key, value]) => {
-        return `
-          <div class="permission-item">
-            <span class="name">${key}</span>
-            <span class={permission-status ${value ? "enabled" : "disabled"}}>
-              <svg width="16" height="16" fill="white" viewBox="0 0 16 16">
-                <path d="M13.485 1.757a1 1 0 0 1 1.415 1.414L6.5 11.57l-3.5-3.5a1 1 0 1 1 1.414-1.414L6.5 9.157l6.985-6.986z" />
-              </svg>
-              ${value ? "Enabled" : "Disabled"}
-            </span>
-          </div>
-        `;
-      })}
-   
-      </div>
+              <!-- Permissions List -->
+              <table width="100%" cellpadding="0" cellspacing="0" style="margin-top:20px;">
+                ${Object.entries(permissions)
+                  .map(([key, value]) => `
+                    <tr>
+                      <td style="padding:12px;border-bottom:1px solid #eeeeee;">
+                        <strong>${getPermissionsString(key)}</strong>
+                      </td>
+                      <td align="right" style="padding:12px;border-bottom:1px solid #eeeeee;">
+                        <span style="
+                          padding:6px 14px;
+                          border-radius:20px;
+                          font-size:13px;
+                          color:#ffffff;
+                          background:${value ? "#22c55e" : "#ef4444"};
+                        ">
+                          ${value ? "Enabled" : "Disabled"}
+                        </span>
+                      </td>
+                    </tr>
+                  `)
+                  .join("")}
 
-      <p>If you have any questions or believe this update was made in error, please contact our support team.</p>
-    </div>
-    <div class="footer">
-      <p>&copy; 2024 Your Company | All rights reserved</p>
-    </div>
-  </div>
+                <!-- Account Status -->
+                <tr>
+                  <td style="padding:12px;">
+                    <strong>Account Status</strong>
+                  </td>
+                  <td align="right" style="padding:12px;">
+                    <span style="
+                      padding:6px 14px;
+                      border-radius:20px;
+                      font-size:13px;
+                      color:#ffffff;
+                      background:${disabled ? "#ef4444" : "#22c55e"};
+                    ">
+                      ${disabled ? "Disabled" : "Active"}
+                    </span>
+                  </td>
+                </tr>
+              </table>
+
+              <p style="margin-top:20px;">
+                If you believe this change was made in error, please contact support.
+              </p>
+            </td>
+          </tr>
+
+          <!-- Footer -->
+          <tr>
+            <td style="background:#f9f9f9;text-align:center;padding:15px;font-size:12px;color:#888888;">
+              © 2024 Your Company. All rights reserved.
+            </td>
+          </tr>
+
+        </table>
+      </td>
+    </tr>
+  </table>
 </body>
 </html>
-  `,
+`
   };
 
   try {
@@ -472,7 +516,7 @@ const sendTransactionReceipt = (
   email,
   receiptNumber,
   amount,
-  transactionDate
+  transactionDate,
 ) => {
   const transporter = nodemailer.createTransport({
     service: "gmail",
@@ -618,5 +662,8 @@ module.exports = {
   sendTestEmail,
   sendTransactionReceipt,
   formatDate,
-  uploadImage
+  uploadImage,
+  sendNotification,
+  getPlanName,
+  emitNotification,
 };

@@ -7,6 +7,7 @@ const plans = db.get("plans");
 const subscriptions = db.get("subscriptions");
 const authenticateJWT = require("../../middleware/authenticate-jwt");
 const { v1: uuidv1, v4: uuidv4 } = require("uuid");
+const { sendNotification, getPlanName } = require("../../utils/constants");
 
 const getEndDate = (days) => {
   const endDate = new Date(); // Create a copy of startDate
@@ -57,7 +58,7 @@ router.post(
   "/handlePaymentAndSubscription/:userId",
   authenticateJWT,
   async (req, res) => {
-    console.log("body :", req.body);
+    // console.log("body :", req.body);
     const subscriptionDetails = {
       id: uuidv4(),
       userId: req.params.userId,
@@ -72,6 +73,19 @@ router.post(
 
     try {
       subscriptions.insert({ ...subscriptionDetails }).then(() => {
+        const notificationsDetails = {
+          title: `Welcome to ${getPlanName(subscriptionDetails?.planId)}`,
+          message: `Awesome!! Now you can explore all the new cool stuff you can do in ${getPlanName(
+            subscriptionDetails?.planId
+          )}`,
+          type: "subscription", //["info", "warning", "system"]
+          to: subscriptionDetails?.userId,
+          from: "system",
+          createdAt: new Date(),
+          seenAt: null,
+          priority: "Low", //["low", "Medium", "High"]
+        };
+        sendNotification(notificationsDetails, req);
         return res.json({
           success: true,
           message: "Plan updated",

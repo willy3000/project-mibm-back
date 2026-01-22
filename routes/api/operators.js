@@ -66,7 +66,7 @@ router.post(
       permissions: details.permissions,
     };
 
-    console.log('adding operator')
+    // console.log('adding operator')
 
     const user = await users.findOne({ email: operatorDetails.email });
     const operator = await operators.findOne({ email: operatorDetails.email });
@@ -81,9 +81,9 @@ router.post(
     } else {
       const isEmailValid = await sendTestEmail(
         operatorDetails?.email,
-        operatorDetails?.businessName
+        operatorDetails?.businessName,
       );
-      console.log("email is valid : ", isEmailValid);
+      // console.log("email is valid : ", isEmailValid);
 
       if (isEmailValid) {
         try {
@@ -93,7 +93,7 @@ router.post(
               operatorDetails?.email,
               operatorDetails?.userCode,
               operatorDetails?.password,
-              operatorDetails?.businessName
+              operatorDetails?.businessName,
             );
             res.json({
               success: true,
@@ -113,7 +113,7 @@ router.post(
         });
       }
     }
-  }
+  },
 );
 
 //Update inventory user #mongodb
@@ -145,11 +145,11 @@ router.put(
             $set: {
               ...operatorDetails,
             },
-          } // The data to update (only the fields provided in `updateData`)
+          }, // The data to update (only the fields provided in `updateData`)
         )
         .then((doc) => {
           if (doc) {
-            sendPermissionsEmail(doc?.email, doc?.permissions);
+            sendPermissionsEmail(doc?.email, doc?.permissions, doc?.disabled);
             res.json({
               success: true,
               message: "Operator Updated",
@@ -163,7 +163,7 @@ router.put(
         message: err.message,
       });
     }
-  }
+  },
 );
 //Generate new password #mongodb
 router.put("/generateNewPassword/:userId/:operatorId", async (req, res) => {
@@ -178,7 +178,7 @@ router.put("/generateNewPassword/:userId/:operatorId", async (req, res) => {
           $set: {
             password: generatePassword(),
           },
-        } // The data to update (only the fields provided in `updateData`)
+        }, // The data to update (only the fields provided in `updateData`)
       )
       .then((doc) => {
         if (doc) {
@@ -242,7 +242,7 @@ router.get(
         result: operator?.permissions,
       });
     }
-  }
+  },
 );
 
 //get operator by id #mongodb
@@ -263,7 +263,7 @@ router.get(
     } catch (err) {
       res.json({ success: false, message: err.message });
     }
-  }
+  },
 );
 
 //Log in #mongodb
@@ -278,7 +278,7 @@ router.post("/logIn", (req, res) => {
     if (account) {
       const isPasswordValid = await bcrypt.compare(
         userDetails.password,
-        account.password
+        account.password,
       );
       if (isPasswordValid) {
         const token = jwt.sign({ username: account.username }, JWT_SECRET, {
@@ -360,7 +360,7 @@ router.post("/updateDetails/:userId", upload.single("logo"), (req, res) => {
                 ? userDetails.logo
                 : account.logo,
           },
-        }
+        },
       )
       .then((doc) => {
         users.find({ id: userDetails.userId }).then((doc) => {
